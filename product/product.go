@@ -12,7 +12,13 @@ import (
 
 var products []Product
 
-func SetUpProductsData() {
+type ProductService struct{}
+
+func NewProductService() *ProductService {
+	return &ProductService{}
+}
+
+func (p ProductService) SetUpProductsData() {
 	for i := 1; i <= 10; i++ {
 		id := uuid.New()
 		s1 := rand.NewSource(time.Now().UnixNano())
@@ -32,7 +38,7 @@ func SetUpProductsData() {
 	}
 }
 
-func GetAllProducts(c echo.Context) (err error) {
+func (p ProductService) GetAllProducts(c echo.Context) (err error) {
 
 	req := new(GetAllProductsRequest)
 	if err := c.Bind(req); err != nil {
@@ -50,7 +56,17 @@ func GetAllProducts(c echo.Context) (err error) {
 	return c.JSON(http.StatusOK, resp)
 }
 
-func GetProductByID(c echo.Context) (err error) {
+func (p ProductService) GetProductByIDInternal(id string) *Product {
+	for _, p := range products {
+		if id == p.ID {
+			return &p
+		}
+	}
+
+	return nil
+}
+
+func (p ProductService) GetProductByID(c echo.Context) (err error) {
 
 	req := new(GetProductByIDRequest)
 	if err := c.Bind(req); err != nil {
@@ -61,13 +77,7 @@ func GetProductByID(c echo.Context) (err error) {
 		return err
 	}
 
-	var product *Product
-	for _, p := range products {
-		if req.ID == p.ID {
-			product = &p
-			break
-		}
-	}
+	product := p.GetProductByIDInternal(req.ID)
 
 	var resp GetProductByIDResponse
 
@@ -90,7 +100,7 @@ func GetProductByID(c echo.Context) (err error) {
 	return c.JSON(http.StatusOK, resp)
 }
 
-func GetProductByName(c echo.Context) (err error) {
+func (p ProductService) GetProductByName(c echo.Context) (err error) {
 
 	req := new(GetProductByNameRequest)
 	if err := c.Bind(req); err != nil {

@@ -6,24 +6,52 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
 
+	"neversitup_backend_test/auth"
+	order "neversitup_backend_test/order"
 	product "neversitup_backend_test/product"
-	user "neversitup_backend_test/user"
+
+	echojwt "github.com/labstack/echo-jwt/v4"
 )
 
 func main() {
+	productService := product.NewProductService()
+	productService.SetUpProductsData()
 
-	product.SetUpProductsData()
+	userService := order.NewUserService()
+	userService.SetUpUsersProfile()
+
+	orderService := order.NewOrderService(userService, productService)
+	orderService.SetUpOrdersData()
+
+	authService := auth.NewAuthService(userService)
+	authService.SetUpAccountData()
+
 	e := echo.New()
 	e.Validator = &CustomValidator{validator: validator.New()}
 
+	r := e.Group("/user")
+	r.Use(echojwt.WithConfig(echojwt.Config{
+		SigningKey: []byte("secret"),
+	}))
+
+	//auth
+	e.POST("/register", authService.Register)
+	e.POST("/login", authService.Login)
+
 	//product
-	e.GET("/getAllProducts", product.GetAllProducts)
-	e.GET("/getProductByID", product.GetProductByID)
-	e.GET("/getProductByName", product.GetProductByName)
+	r.GET("/getAllProducts", productService.GetAllProducts)
+	r.GET("/getProductByID", productService.GetProductByID)
+	r.GET("/getProductByName", productService.GetProductByName)
 
 	//user
-	e.GET("/getUserProfileByID", user.GetUserProfileByID)
-	e.GET("/getUserOrderHistoryByID", user.GetUserOrderHistoryByID)
+	r.GET("/getUserProfileByID", userService.GetUserProfileByID)
+	r.GET("/getUserOrderHistoryByID", userService.GetUserOrderHistoryByID)
+
+	//order
+	r.POST("/saveOrder", orderService.SaveOrder)
+	r.GET("/getOrderByOrderID", orderService.GetOrderByOrderID)
+	r.POST("/cancelOrderByOrderID", orderService.CancelOrderByOrderID)
+
 	e.Logger.Fatal(e.Start(":8080"))
 }
 

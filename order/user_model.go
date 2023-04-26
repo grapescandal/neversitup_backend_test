@@ -1,17 +1,13 @@
-package user
-
-import (
-	order "neversitup_backend_test/order"
-)
+package order
 
 type UserProfile struct {
 	ID       string `json:"id"`
 	Name     string `json:"name"`
-	LastName string `json:"lastName"`
+	Lastname string `json:"lastname"`
 }
 
 type GetUserProfileByIDRequest struct {
-	ID string `json:"id"`
+	ID string `json:"id" validate:"required"`
 }
 
 type GetUserProfileByIDResponse struct {
@@ -21,11 +17,11 @@ type GetUserProfileByIDResponse struct {
 }
 
 type GetUserOrderHistoryByIDRequest struct {
-	ID string `json:"id"`
+	ID string `json:"id" validate:"required"`
 }
 
 type GetUserOrderHistoryByIDResponse struct {
-	Code    string        `json:"code"`
-	Message string        `json:"message"`
-	Orders  []order.Order `json:"orders"`
+	Code    string  `json:"code"`
+	Message string  `json:"message"`
+	Orders  []Order `json:"orders"`
 }

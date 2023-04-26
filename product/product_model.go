@@ -24,7 +24,7 @@ type GetProductByIDResponse struct {
 }
 
 type GetProductByNameRequest struct {
-	Name string `json:"name"`
+	Name string `json:"name" validate:"required"`
 }
 
 type GetProductByNameResponse struct {

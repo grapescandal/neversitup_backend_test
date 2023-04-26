@@ -1,14 +1,22 @@
 package auth
 
 import (
-	user "neversitup_backend_test/user"
+	user "neversitup_backend_test/order"
+
+	"github.com/golang-jwt/jwt/v4"
 )
 
-type RegisterRequest struct {
-	UserName string `json:"userName"`
+type Account struct {
+	Username string `json:"username"`
 	Password string `json:"password"`
-	Name     string `json:"name"`
-	LastName string `json:"lastName"`
+	UserID   string `json:"userID"`
+}
+
+type RegisterRequest struct {
+	UserName string `json:"userName" validate:"required"`
+	Password string `json:"password" validate:"required"`
+	Name     string `json:"name" validate:"required"`
+	Lastname string `json:"lastname" validate:"required"`
 }
 
 type RegisterResponse struct {
@@ -19,12 +27,18 @@ type RegisterResponse struct {
 }
 
 type LoginRequest struct {
-	UserName string `json:"userName"`
-	Password string `json:"password"`
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }
 
 type LoginResponse struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
-	JWT     string `json:"jwt"`
+	Token   string `json:"token,omitempty"`
+}
+
+type jwtCustomClaims struct {
+	Name  string `json:"name"`
+	Admin bool   `json:"admin"`
+	JWT   jwt.RegisteredClaims
 }

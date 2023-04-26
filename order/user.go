@@ -1,31 +1,53 @@
-package user
+package order
 
 import (
 	"fmt"
 	"net/http"
-	order "neversitup_backend_test/order"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 var usersProfile []UserProfile
 
-func SetUpUsersProfile() {
-	usersProfile = []UserProfile{}
+type UserService struct{}
+
+func NewUserService() *UserService {
+	return &UserService{}
+}
+
+func (u UserService) SetUpUsersProfile() {
+	usersProfile = []UserProfile{
+		{
+			ID:       "1",
+			Name:     "Grape",
+			Lastname: "Test",
+		},
+	}
 	fmt.Println("Set up UsersProfile completed")
 }
 
-func CreateUserProfile(name, lastName string) {
-	id := uuid.New()
-	usersProfile = append(usersProfile, UserProfile{
-		ID:       id.String(),
+func (u UserService) CreateUserProfile(userID, name, lastName string) UserProfile {
+	userProfle := UserProfile{
+		ID:       userID,
 		Name:     name,
-		LastName: lastName,
-	})
+		Lastname: lastName,
+	}
+	usersProfile = append(usersProfile, userProfle)
+
+	return userProfle
 }
 
-func GetUserProfileByID(c echo.Context) (err error) {
+func (u UserService) GetUserProfileByIDInternal(id string) *UserProfile {
+	for _, u := range usersProfile {
+		if id == u.ID {
+			return &u
+		}
+	}
+
+	return nil
+}
+
+func (u UserService) GetUserProfileByID(c echo.Context) (err error) {
 
 	req := new(GetUserProfileByIDRequest)
 	if err := c.Bind(req); err != nil {
@@ -36,15 +58,9 @@ func GetUserProfileByID(c echo.Context) (err error) {
 		return err
 	}
 
-	var userProfile *UserProfile
-	for _, u := range usersProfile {
-		if req.ID == u.ID {
-			userProfile = &u
-			break
-		}
-	}
-
 	var resp GetUserProfileByIDResponse
+
+	userProfile := u.GetUserProfileByIDInternal(req.ID)
 
 	if userProfile == nil {
 		resp = GetUserProfileByIDResponse{
@@ -65,7 +81,7 @@ func GetUserProfileByID(c echo.Context) (err error) {
 	return c.JSON(http.StatusOK, resp)
 }
 
-func GetUserOrderHistoryByID(c echo.Context) (err error) {
+func (u UserService) GetUserOrderHistoryByID(c echo.Context) (err error) {
 
 	req := new(GetUserOrderHistoryByIDRequest)
 	if err := c.Bind(req); err != nil {
@@ -76,7 +92,7 @@ func GetUserOrderHistoryByID(c echo.Context) (err error) {
 		return err
 	}
 
-	var orders []order.Order
+	var orders []Order
 	var resp GetUserOrderHistoryByIDResponse
 
 	if orders == nil {
